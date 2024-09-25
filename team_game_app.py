@@ -180,20 +180,20 @@ with score_col1:
         f"### <span style='color:red'>Red Team Score: {red_score}</span>",
         unsafe_allow_html=True
     )
-with score_col2:
-    st.markdown("### 🏆 Birthday Points")
-    if birthday_owner == 'Red':
-        st.markdown(
-            "### <span style='color:red'>Red Team owns the Birthday Points!</span>",
-            unsafe_allow_html=True
-        )
-    elif birthday_owner == 'Blue':
-        st.markdown(
-            "### <span style='color:blue'>Blue Team owns the Birthday Points!</span>",
-            unsafe_allow_html=True
-        )
-    else:
-        st.markdown("### ⚖️ **Neutral**")
+# with score_col2:
+#     st.markdown("### 🏆 Birthday Points")
+#     if birthday_owner == 'Red':
+#         st.markdown(
+#             "### <span style='color:red'>Red Team owns the Birthday Points!</span>",
+#             unsafe_allow_html=True
+#         )
+#     elif birthday_owner == 'Blue':
+#         st.markdown(
+#             "### <span style='color:blue'>Blue Team owns the Birthday Points!</span>",
+#             unsafe_allow_html=True
+#         )
+#     else:
+#         st.markdown("### ⚖️ **Neutral**")
 with score_col3:
     st.markdown(
         f"### <span style='color:blue'>Blue Team Score: {blue_score}</span>",
