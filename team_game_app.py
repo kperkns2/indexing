@@ -54,7 +54,7 @@ def calculate_scores():
     red_score = len(st.session_state.red_countries)
     blue_score = len(st.session_state.blue_countries)
     
-    # Compare dates
+    # Compare dates for bonus points (earliest date gets bonus)
     if st.session_state.red_date < st.session_state.blue_date:
         red_score += 10
     elif st.session_state.blue_date < st.session_state.red_date:
@@ -64,9 +64,13 @@ def calculate_scores():
     return red_score, blue_score
 
 def calculate_birthday_points():
+    """
+    Determine which team owns the birthday points based on the earliest date.
+    Returns 'Red', 'Blue', or 'None'.
+    """
     if st.session_state.red_date < st.session_state.blue_date:
         return 'Red'
-    elif st.session_state.blue_date > st.session_state.red_date:
+    elif st.session_state.blue_date < st.session_state.red_date:
         return 'Blue'
     else:
         return 'None'
@@ -103,7 +107,7 @@ with st.sidebar:
     st.header("🎮 Game Controls")
     
     st.markdown("### 📅 Enter the Most Distant Birthday")
-    st.write("Teams can set their birthdays. The team with the most recent (distant) birthday earns additional points.")
+    st.write("Teams can set their birthdays. The team with the earliest (oldest) birthday earns additional points.")
     
     st.subheader("Red Team")
     # Country Selection for Red Team with Placeholder
@@ -113,9 +117,7 @@ with st.sidebar:
     
     # Date Selection for Red Team
     # Allow dates going back 2000 years
-    earliest_date = datetime.today() - timedelta(days=2000*365)  # Approximation
     try:
-        # Handle potential errors if the date is too far back
         st.session_state.red_date = st.date_input(
             "Select Red Team Birthday",
             value=st.session_state.red_date,
