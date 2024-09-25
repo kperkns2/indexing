@@ -64,7 +64,7 @@ def calculate_scores():
     return red_score, blue_score
 
 def calculate_birthday_points():
-    if st.session_state.red_date > st.session_state.blue_date:
+    if st.session_state.red_date < st.session_state.blue_date:
         return 'Red'
     elif st.session_state.blue_date > st.session_state.red_date:
         return 'Blue'
