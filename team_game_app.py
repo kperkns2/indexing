@@ -66,66 +66,71 @@ def calculate_birthday_points():
 
 birthday_owner = calculate_birthday_points()
 
+# Define callback functions
+def claim_red():
+    selected = st.session_state.red_select
+    if selected != "Select a country":
+        st.session_state.red_countries.append(selected)
+        st.session_state.red_select = "Select a country"
+        st.success(f"Red Team claimed **{selected}**!")
+    else:
+        st.warning("Please select a valid country to claim.")
+
+def claim_blue():
+    selected = st.session_state.blue_select
+    if selected != "Select a country":
+        st.session_state.blue_countries.append(selected)
+        st.session_state.blue_select = "Select a country"
+        st.success(f"Blue Team claimed **{selected}**!")
+    else:
+        st.warning("Please select a valid country to claim.")
+
 # Layout: Sidebar for controls
 with st.sidebar:
-    st.header("Game Controls")
+    st.header("🎮 Game Controls")
     
-    st.markdown("### Enter the Most Distant Birthday")
+    st.markdown("### 📅 Enter the Most Distant Birthday")
     st.write("Teams can set their birthdays. The team with the most recent (distant) birthday earns additional points.")
     
-    st.subheader("Red Team")
+    st.subheader("🔴 Red Team")
     # Country Selection for Red Team with Placeholder
     available_countries_red = ["Select a country"] + countries_df['name'][~countries_df['name'].isin(st.session_state.red_countries + st.session_state.blue_countries)].tolist()
-    red_country = st.selectbox("Select a country for Red Team", options=available_countries_red, key='red_select')
-    if st.button("Claim for Red", key='red_button'):
-        if red_country != "Select a country":
-            st.session_state.red_countries.append(red_country)
-            st.success(f"Red Team claimed {red_country}!")
-            # Reset the selectbox to placeholder
-            st.session_state.red_select = "Select a country"
-        else:
-            st.warning("Please select a valid country to claim.")
+    st.selectbox("Select a country for Red Team", options=available_countries_red, key='red_select')
+    st.button("🟠 Claim for Red", on_click=claim_red, key='red_button')
     
     # Date Selection for Red Team
-    red_date = st.date_input("Select Red Team Birthday", value=st.session_state.red_date, key='red_date_input')
-    st.session_state.red_date = red_date
+    st.date_input("📆 Select Red Team Birthday", value=st.session_state.red_date, key='red_date_input')
+    st.session_state.red_date = st.session_state.red_date  # Update session state
     
     st.markdown("---")
     
-    st.subheader("Blue Team")
+    st.subheader("🔵 Blue Team")
     # Country Selection for Blue Team with Placeholder
     available_countries_blue = ["Select a country"] + countries_df['name'][~countries_df['name'].isin(st.session_state.red_countries + st.session_state.blue_countries)].tolist()
-    blue_country = st.selectbox("Select a country for Blue Team", options=available_countries_blue, key='blue_select')
-    if st.button("Claim for Blue", key='blue_button'):
-        if blue_country != "Select a country":
-            st.session_state.blue_countries.append(blue_country)
-            st.success(f"Blue Team claimed {blue_country}!")
-            # Reset the selectbox to placeholder
-            st.session_state.blue_select = "Select a country"
-        else:
-            st.warning("Please select a valid country to claim.")
+    st.selectbox("Select a country for Blue Team", options=available_countries_blue, key='blue_select')
+    st.button("🔵 Claim for Blue", on_click=claim_blue, key='blue_button')
     
     # Date Selection for Blue Team
-    blue_date = st.date_input("Select Blue Team Birthday", value=st.session_state.blue_date, key='blue_date_input')
-    st.session_state.blue_date = blue_date
+    st.date_input("📆 Select Blue Team Birthday", value=st.session_state.blue_date, key='blue_date_input')
+    st.session_state.blue_date = st.session_state.blue_date  # Update session state
     
     st.markdown("---")
     
     # Display lists of countries
-    st.subheader("Red Team Countries")
+    st.subheader("🔴 Red Team Countries")
     if st.session_state.red_countries:
         st.write(", ".join(st.session_state.red_countries))
     else:
         st.write("No countries claimed yet.")
     
-    st.subheader("Blue Team Countries")
+    st.subheader("🔵 Blue Team Countries")
     if st.session_state.blue_countries:
         st.write(", ".join(st.session_state.blue_countries))
     else:
         st.write("No countries claimed yet.")
 
 # Main area for scores and map
-st.title("Red Team vs Blue Team World Domination Game")
+st.title("🌍 Red Team vs Blue Team World Domination Game")
 
 # Calculate scores
 red_score, blue_score = calculate_scores()
@@ -134,17 +139,17 @@ red_score, blue_score = calculate_scores()
 score_col1, score_col2, score_col3 = st.columns(3)
 
 with score_col1:
-    st.markdown(f"### :red[Red Team Score: {red_score}]")
+    st.markdown(f"### 🔴 Red Team Score: **{red_score}**")
 with score_col2:
     st.markdown("### 🏆 Birthday Points")
     if birthday_owner == 'Red':
-        st.markdown("### :red[Red Team owns the Birthday Points]")
+        st.markdown("### 🔴 **Red Team** owns the Birthday Points!")
     elif birthday_owner == 'Blue':
-        st.markdown("### :blue[Blue Team owns the Birthday Points]")
+        st.markdown("### 🔵 **Blue Team** owns the Birthday Points!")
     else:
-        st.markdown("### Neutral")
+        st.markdown("### ⚖️ **Neutral**")
 with score_col3:
-    st.markdown(f"### :blue[Blue Team Score: {blue_score}]")
+    st.markdown(f"### 🔵 Blue Team Score: **{blue_score}**")
 
 st.markdown("---")
 
@@ -163,7 +168,7 @@ fig = px.choropleth(
         'LightGray': 'lightgray'
     },
     projection='natural earth',
-    title="World Map: Team Ownership"
+    title="🌍 World Map: Team Ownership"
 )
 fig.update_layout(legend_title_text='Team Ownership')
 
