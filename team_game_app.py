@@ -13,6 +13,10 @@ if 'red_date' not in st.session_state:
     st.session_state.red_date = datetime.today()
 if 'blue_date' not in st.session_state:
     st.session_state.blue_date = datetime.today()
+if 'red_select' not in st.session_state:
+    st.session_state.red_select = "Select a country"
+if 'blue_select' not in st.session_state:
+    st.session_state.blue_select = "Select a country"
 
 # Load country data
 @st.cache_data
@@ -70,13 +74,17 @@ with st.sidebar:
     st.write("Teams can set their birthdays. The team with the most recent (distant) birthday earns additional points.")
     
     st.subheader("Red Team")
-    # Country Selection for Red Team
-    available_countries_red = countries_df['name'][~countries_df['name'].isin(st.session_state.red_countries + st.session_state.blue_countries)].tolist()
+    # Country Selection for Red Team with Placeholder
+    available_countries_red = ["Select a country"] + countries_df['name'][~countries_df['name'].isin(st.session_state.red_countries + st.session_state.blue_countries)].tolist()
     red_country = st.selectbox("Select a country for Red Team", options=available_countries_red, key='red_select')
     if st.button("Claim for Red", key='red_button'):
-        if red_country:
+        if red_country != "Select a country":
             st.session_state.red_countries.append(red_country)
             st.success(f"Red Team claimed {red_country}!")
+            # Reset the selectbox to placeholder
+            st.session_state.red_select = "Select a country"
+        else:
+            st.warning("Please select a valid country to claim.")
     
     # Date Selection for Red Team
     red_date = st.date_input("Select Red Team Birthday", value=st.session_state.red_date, key='red_date_input')
@@ -85,13 +93,17 @@ with st.sidebar:
     st.markdown("---")
     
     st.subheader("Blue Team")
-    # Country Selection for Blue Team
-    available_countries_blue = countries_df['name'][~countries_df['name'].isin(st.session_state.red_countries + st.session_state.blue_countries)].tolist()
+    # Country Selection for Blue Team with Placeholder
+    available_countries_blue = ["Select a country"] + countries_df['name'][~countries_df['name'].isin(st.session_state.red_countries + st.session_state.blue_countries)].tolist()
     blue_country = st.selectbox("Select a country for Blue Team", options=available_countries_blue, key='blue_select')
     if st.button("Claim for Blue", key='blue_button'):
-        if blue_country:
+        if blue_country != "Select a country":
             st.session_state.blue_countries.append(blue_country)
             st.success(f"Blue Team claimed {blue_country}!")
+            # Reset the selectbox to placeholder
+            st.session_state.blue_select = "Select a country"
+        else:
+            st.warning("Please select a valid country to claim.")
     
     # Date Selection for Blue Team
     blue_date = st.date_input("Select Blue Team Birthday", value=st.session_state.blue_date, key='blue_date_input')
