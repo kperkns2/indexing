@@ -1,58 +1,107 @@
 import streamlit as st
 import pandas as pd
 import plotly.express as px
-import pycountry
-from datetime import datetime, timedelta
+from datetime import datetime
+import json
 
 # ==============================
 # Initialize Session State
 # ==============================
 
-if 'red_countries' not in st.session_state:
-    st.session_state.red_countries = []
-if 'blue_countries' not in st.session_state:
-    st.session_state.blue_countries = []
+if 'red_states' not in st.session_state:
+    st.session_state.red_states = []
+if 'blue_states' not in st.session_state:
+    st.session_state.blue_states = []
 if 'red_date' not in st.session_state:
     st.session_state.red_date = datetime.today()
 if 'blue_date' not in st.session_state:
     st.session_state.blue_date = datetime.today()
 if 'red_select' not in st.session_state:
-    st.session_state.red_select = "Select a country"
+    st.session_state.red_select = "Select a state"
 if 'blue_select' not in st.session_state:
-    st.session_state.blue_select = "Select a country"
+    st.session_state.blue_select = "Select a state"
 
 # ==============================
-# Load Country Data
+# Load US States Data
 # ==============================
 
 @st.cache_data
-def load_countries():
-    countries = []
-    for country in pycountry.countries:
-        countries.append({
-            'name': country.name,
-            'alpha_3': country.alpha_3
-        })
-    df = pd.DataFrame(countries)
+def load_states():
+    # List of US states with their names and abbreviations
+    us_states = [
+        {'name': 'Alabama', 'abbr': 'AL'},
+        {'name': 'Alaska', 'abbr': 'AK'},
+        {'name': 'Arizona', 'abbr': 'AZ'},
+        {'name': 'Arkansas', 'abbr': 'AR'},
+        {'name': 'California', 'abbr': 'CA'},
+        {'name': 'Colorado', 'abbr': 'CO'},
+        {'name': 'Connecticut', 'abbr': 'CT'},
+        {'name': 'Delaware', 'abbr': 'DE'},
+        {'name': 'Florida', 'abbr': 'FL'},
+        {'name': 'Georgia', 'abbr': 'GA'},
+        {'name': 'Hawaii', 'abbr': 'HI'},
+        {'name': 'Idaho', 'abbr': 'ID'},
+        {'name': 'Illinois', 'abbr': 'IL'},
+        {'name': 'Indiana', 'abbr': 'IN'},
+        {'name': 'Iowa', 'abbr': 'IA'},
+        {'name': 'Kansas', 'abbr': 'KS'},
+        {'name': 'Kentucky', 'abbr': 'KY'},
+        {'name': 'Louisiana', 'abbr': 'LA'},
+        {'name': 'Maine', 'abbr': 'ME'},
+        {'name': 'Maryland', 'abbr': 'MD'},
+        {'name': 'Massachusetts', 'abbr': 'MA'},
+        {'name': 'Michigan', 'abbr': 'MI'},
+        {'name': 'Minnesota', 'abbr': 'MN'},
+        {'name': 'Mississippi', 'abbr': 'MS'},
+        {'name': 'Missouri', 'abbr': 'MO'},
+        {'name': 'Montana', 'abbr': 'MT'},
+        {'name': 'Nebraska', 'abbr': 'NE'},
+        {'name': 'Nevada', 'abbr': 'NV'},
+        {'name': 'New Hampshire', 'abbr': 'NH'},
+        {'name': 'New Jersey', 'abbr': 'NJ'},
+        {'name': 'New Mexico', 'abbr': 'NM'},
+        {'name': 'New York', 'abbr': 'NY'},
+        {'name': 'North Carolina', 'abbr': 'NC'},
+        {'name': 'North Dakota', 'abbr': 'ND'},
+        {'name': 'Ohio', 'abbr': 'OH'},
+        {'name': 'Oklahoma', 'abbr': 'OK'},
+        {'name': 'Oregon', 'abbr': 'OR'},
+        {'name': 'Pennsylvania', 'abbr': 'PA'},
+        {'name': 'Rhode Island', 'abbr': 'RI'},
+        {'name': 'South Carolina', 'abbr': 'SC'},
+        {'name': 'South Dakota', 'abbr': 'SD'},
+        {'name': 'Tennessee', 'abbr': 'TN'},
+        {'name': 'Texas', 'abbr': 'TX'},
+        {'name': 'Utah', 'abbr': 'UT'},
+        {'name': 'Vermont', 'abbr': 'VT'},
+        {'name': 'Virginia', 'abbr': 'VA'},
+        {'name': 'Washington', 'abbr': 'WA'},
+        {'name': 'West Virginia', 'abbr': 'WV'},
+        {'name': 'Wisconsin', 'abbr': 'WI'},
+        {'name': 'Wyoming', 'abbr': 'WY'},
+        # Include DC if desired
+        {'name': 'District of Columbia', 'abbr': 'DC'}
+    ]
+    df = pd.DataFrame(us_states)
     return df
 
-countries_df = load_countries()
+states_df = load_states()
 
 # ==============================
 # Helper Functions
 # ==============================
 
-def get_country_color(row):
-    if row['name'] in st.session_state.red_countries:
+def get_state_color(row):
+    if row['name'] in st.session_state.red_states:
         return 'Red'
-    elif row['name'] in st.session_state.blue_countries:
+    elif row['name'] in st.session_state.blue_states:
         return 'Blue'
     else:
         return 'LightGray'
 
 def calculate_scores():
-    red_score = len(st.session_state.red_countries)
-    blue_score = len(st.session_state.blue_countries)
+    red_score = len(st.session_state.red_states)
+    blue_score = len(st.session_state.blue_states)
     
     # Compare dates for bonus points (earliest date gets bonus)
     if st.session_state.red_date < st.session_state.blue_date:
@@ -65,7 +114,7 @@ def calculate_scores():
 
 def calculate_birthday_points():
     """
-    Determine which team owns the birthday points based on the earliest date.
+    Determine which team owns the points based on the earliest date.
     Returns 'Red', 'Blue', or 'None'.
     """
     if st.session_state.red_date < st.session_state.blue_date:
@@ -83,21 +132,27 @@ birthday_owner = calculate_birthday_points()
 
 def claim_red():
     selected = st.session_state.red_select
-    if selected != "Select a country":
-        st.session_state.red_countries.append(selected)
-        st.session_state.red_select = "Select a country"
-        st.success(f"**Red Team** claimed **{selected}**!")
+    if selected != "Select a state":
+        if selected not in st.session_state.red_states and selected not in st.session_state.blue_states:
+            st.session_state.red_states.append(selected)
+            st.session_state.red_select = "Select a state"
+            st.success(f"**Red Team** claimed **{selected}**!")
+        else:
+            st.warning("This state has already been claimed.")
     else:
-        st.warning("Please select a valid country to claim.")
+        st.warning("Please select a valid state to claim.")
 
 def claim_blue():
     selected = st.session_state.blue_select
-    if selected != "Select a country":
-        st.session_state.blue_countries.append(selected)
-        st.session_state.blue_select = "Select a country"
-        st.success(f"**Blue Team** claimed **{selected}**!")
+    if selected != "Select a state":
+        if selected not in st.session_state.red_states and selected not in st.session_state.blue_states:
+            st.session_state.blue_states.append(selected)
+            st.session_state.blue_select = "Select a state"
+            st.success(f"**Blue Team** claimed **{selected}**!")
+        else:
+            st.warning("This state has already been claimed.")
     else:
-        st.warning("Please select a valid country to claim.")
+        st.warning("Please select a valid state to claim.")
 
 # ==============================
 # Layout: Sidebar for Controls
@@ -106,73 +161,68 @@ def claim_blue():
 with st.sidebar:
     st.header("🎮 Game Controls")
     
-    st.markdown("### 📅 Enter the Most Distant Birthday")
-    st.write("Teams can set their birthdays. The team with the earliest (oldest) birthday earns additional points.")
+    st.markdown("### 📅 Enter a Date")
+    st.write("Teams can set any date. The team with the earliest date earns additional points.")
     
     st.subheader("Red Team")
-    # Country Selection for Red Team with Placeholder
-    available_countries_red = ["Select a country"] + countries_df['name'][~countries_df['name'].isin(st.session_state.red_countries + st.session_state.blue_countries)].tolist()
-    st.selectbox("Select a country for Red Team", options=available_countries_red, key='red_select')
+    # State Selection for Red Team with Placeholder
+    available_states_red = ["Select a state"] + states_df['name'][~states_df['name'].isin(st.session_state.red_states + st.session_state.blue_states)].tolist()
+    st.selectbox("Select a state for Red Team", options=available_states_red, key='red_select')
     st.button("Claim for Red", on_click=claim_red, key='red_button')
     
     # Date Selection for Red Team
-    # Allow dates going back 2000 years
     try:
         st.session_state.red_date = st.date_input(
-            "Select Red Team Birthday",
+            "Select Red Team Date",
             value=st.session_state.red_date,
-            min_value=datetime(1, 1, 1),
-            max_value=datetime.today(),
             key='red_date_input'
         )
     except ValueError:
-        st.warning("Date selected is out of range. Please select a valid date.")
+        st.warning("Date selected is invalid. Please select a valid date.")
     
     st.markdown("---")
     
     st.subheader("Blue Team")
-    # Country Selection for Blue Team with Placeholder
-    available_countries_blue = ["Select a country"] + countries_df['name'][~countries_df['name'].isin(st.session_state.red_countries + st.session_state.blue_countries)].tolist()
-    st.selectbox("Select a country for Blue Team", options=available_countries_blue, key='blue_select')
+    # State Selection for Blue Team with Placeholder
+    available_states_blue = ["Select a state"] + states_df['name'][~states_df['name'].isin(st.session_state.red_states + st.session_state.blue_states)].tolist()
+    st.selectbox("Select a state for Blue Team", options=available_states_blue, key='blue_select')
     st.button("Claim for Blue", on_click=claim_blue, key='blue_button')
     
     # Date Selection for Blue Team
     try:
         st.session_state.blue_date = st.date_input(
-            "Select Blue Team Birthday",
+            "Select Blue Team Date",
             value=st.session_state.blue_date,
-            min_value=datetime(1, 1, 1),
-            max_value=datetime.today(),
             key='blue_date_input'
         )
     except ValueError:
-        st.warning("Date selected is out of range. Please select a valid date.")
+        st.warning("Date selected is invalid. Please select a valid date.")
     
     st.markdown("---")
     
-    # Display lists of countries
-    st.subheader("Red Team Countries")
-    if st.session_state.red_countries:
-        st.write(", ".join(st.session_state.red_countries))
+    # Display lists of states
+    st.subheader("Red Team States")
+    if st.session_state.red_states:
+        st.write(", ".join(st.session_state.red_states))
     else:
-        st.write("No countries claimed yet.")
+        st.write("No states claimed yet.")
     
-    st.subheader("Blue Team Countries")
-    if st.session_state.blue_countries:
-        st.write(", ".join(st.session_state.blue_countries))
+    st.subheader("Blue Team States")
+    if st.session_state.blue_states:
+        st.write(", ".join(st.session_state.blue_states))
     else:
-        st.write("No countries claimed yet.")
+        st.write("No states claimed yet.")
 
 # ==============================
 # Main Area: Scores and Map
 # ==============================
 
-st.title("🌍 Red Team vs Blue Team World Domination Game")
+st.title("🌍 Red Team vs Blue Team US Domination Game")
 
 # Calculate scores
 red_score, blue_score = calculate_scores()
 
-# Display scores and birthday points
+# Display scores and date points
 score_col1, score_col2, score_col3 = st.columns(3)
 
 with score_col1:
@@ -180,20 +230,20 @@ with score_col1:
         f"### <span style='color:red'>Red Team Score: {red_score}</span>",
         unsafe_allow_html=True
     )
-# with score_col2:
-#     st.markdown("### 🏆 Birthday Points")
-#     if birthday_owner == 'Red':
-#         st.markdown(
-#             "### <span style='color:red'>Red Team owns the Birthday Points!</span>",
-#             unsafe_allow_html=True
-#         )
-#     elif birthday_owner == 'Blue':
-#         st.markdown(
-#             "### <span style='color:blue'>Blue Team owns the Birthday Points!</span>",
-#             unsafe_allow_html=True
-#         )
-#     else:
-#         st.markdown("### ⚖️ **Neutral**")
+with score_col2:
+    st.markdown("### 🗓️ Date Points")
+    if birthday_owner == 'Red':
+        st.markdown(
+            "### <span style='color:red'>Red Team owns the Date Points!</span>",
+            unsafe_allow_html=True
+        )
+    elif birthday_owner == 'Blue':
+        st.markdown(
+            "### <span style='color:blue'>Blue Team owns the Date Points!</span>",
+            unsafe_allow_html=True
+        )
+    else:
+        st.markdown("### ⚖️ **Neutral**")
 with score_col3:
     st.markdown(
         f"### <span style='color:blue'>Blue Team Score: {blue_score}</span>",
@@ -203,12 +253,13 @@ with score_col3:
 st.markdown("---")
 
 # Display the map
-map_df = countries_df.copy()
-map_df['color'] = map_df.apply(get_country_color, axis=1)
+map_df = states_df.copy()
+map_df['color'] = map_df.apply(get_state_color, axis=1)
 
 fig = px.choropleth(
     map_df,
-    locations='alpha_3',
+    locations='abbr',
+    locationmode='USA-states',
     color='color',
     hover_name='name',
     color_discrete_map={
@@ -216,8 +267,8 @@ fig = px.choropleth(
         'Blue': 'blue',
         'LightGray': 'lightgray'
     },
-    projection='natural earth',
-    title="🌍 World Map: Team Ownership"
+    scope='usa',
+    title="🌍 US Map: Team Ownership"
 )
 fig.update_layout(legend_title_text='Team Ownership')
 
