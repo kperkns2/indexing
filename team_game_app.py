@@ -162,12 +162,20 @@ with st.sidebar:
     available_states_red = ["Select a state"] + states_df['name'][~states_df['name'].isin(st.session_state.red_states + st.session_state.blue_states)].tolist()
     st.selectbox("Select a state for Red Team", options=available_states_red, key='red_select')
     st.button("Claim for Red", on_click=claim_red, key='red_button')
-    
+
+
+    from datetime import timedelta
+
+    min_date = datetime.today() - timedelta(days=800 * 365)
+
+
+
     # Date Selection for Red Team
     st.session_state.red_date = st.date_input(
         "Select Red Team Date",
         value=st.session_state.red_date,
-        key='red_date_input'
+        key='red_date_input',
+        min_value=min_date
     )
     
     st.markdown("---")
@@ -180,6 +188,7 @@ with st.sidebar:
     # Date Selection for Blue Team
     st.session_state.blue_date = st.date_input(
         "Select Blue Team Date",
+        min_value=min_date,
         value=st.session_state.blue_date,
         key='blue_date_input'
     )
