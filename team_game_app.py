@@ -254,7 +254,7 @@ fig = px.choropleth(
     color_discrete_map={
         'Red': 'red',
         'Blue': 'blue',
-        'LightGray': 'unclaimed'
+        'LightGray': 'lightgray'
     },
     scope='usa',
     title="🌍 US Map: Team Ownership"
