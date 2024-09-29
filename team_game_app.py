@@ -94,7 +94,7 @@ def get_state_color(row):
     elif row['name'] in st.session_state.blue_states:
         return 'Blue'
     else:
-        return 'LightGray'
+        return 'Unclaimed'
 
 def calculate_scores():
     red_score = len(st.session_state.red_states)
@@ -254,7 +254,7 @@ fig = px.choropleth(
     color_discrete_map={
         'Red': 'red',
         'Blue': 'blue',
-        'LightGray': 'lightgray'
+        'Unclaimed': 'lightgray'
     },
     scope='usa',
     title="🌍 US Map: Team Ownership"
