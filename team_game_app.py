@@ -2,7 +2,6 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 from datetime import datetime
-import json
 
 # ==============================
 # Initialize Session State
@@ -27,7 +26,6 @@ if 'blue_select' not in st.session_state:
 
 @st.cache_data
 def load_states():
-    # List of US states with their names and abbreviations
     us_states = [
         {'name': 'Alabama', 'abbr': 'AL'},
         {'name': 'Alaska', 'abbr': 'AK'},
@@ -79,7 +77,6 @@ def load_states():
         {'name': 'West Virginia', 'abbr': 'WV'},
         {'name': 'Wisconsin', 'abbr': 'WI'},
         {'name': 'Wyoming', 'abbr': 'WY'},
-        # Include DC if desired
         {'name': 'District of Columbia', 'abbr': 'DC'}
     ]
     df = pd.DataFrame(us_states)
@@ -108,13 +105,12 @@ def calculate_scores():
         red_score += 10
     elif st.session_state.blue_date < st.session_state.red_date:
         blue_score += 10
-    # If dates are equal, no bonus points
     
     return red_score, blue_score
 
 def calculate_birthday_points():
     """
-    Determine which team owns the points based on the earliest date.
+    Determine which team owns the date points based on the earliest date.
     Returns 'Red', 'Blue', or 'None'.
     """
     if st.session_state.red_date < st.session_state.blue_date:
@@ -123,8 +119,6 @@ def calculate_birthday_points():
         return 'Blue'
     else:
         return 'None'
-
-birthday_owner = calculate_birthday_points()
 
 # ==============================
 # Callback Functions
@@ -165,42 +159,33 @@ with st.sidebar:
     st.write("Teams can set any date. The team with the earliest date earns additional points.")
     
     st.subheader("Red Team")
-    # State Selection for Red Team with Placeholder
     available_states_red = ["Select a state"] + states_df['name'][~states_df['name'].isin(st.session_state.red_states + st.session_state.blue_states)].tolist()
     st.selectbox("Select a state for Red Team", options=available_states_red, key='red_select')
     st.button("Claim for Red", on_click=claim_red, key='red_button')
     
     # Date Selection for Red Team
-    try:
-        st.session_state.red_date = st.date_input(
-            "Select Red Team Date",
-            value=st.session_state.red_date,
-            key='red_date_input'
-        )
-    except ValueError:
-        st.warning("Date selected is invalid. Please select a valid date.")
+    st.session_state.red_date = st.date_input(
+        "Select Red Team Date",
+        value=st.session_state.red_date,
+        key='red_date_input'
+    )
     
     st.markdown("---")
     
     st.subheader("Blue Team")
-    # State Selection for Blue Team with Placeholder
     available_states_blue = ["Select a state"] + states_df['name'][~states_df['name'].isin(st.session_state.red_states + st.session_state.blue_states)].tolist()
     st.selectbox("Select a state for Blue Team", options=available_states_blue, key='blue_select')
     st.button("Claim for Blue", on_click=claim_blue, key='blue_button')
     
     # Date Selection for Blue Team
-    try:
-        st.session_state.blue_date = st.date_input(
-            "Select Blue Team Date",
-            value=st.session_state.blue_date,
-            key='blue_date_input'
-        )
-    except ValueError:
-        st.warning("Date selected is invalid. Please select a valid date.")
+    st.session_state.blue_date = st.date_input(
+        "Select Blue Team Date",
+        value=st.session_state.blue_date,
+        key='blue_date_input'
+    )
     
     st.markdown("---")
     
-    # Display lists of states
     st.subheader("Red Team States")
     if st.session_state.red_states:
         st.write(", ".join(st.session_state.red_states))
@@ -232,6 +217,10 @@ with score_col1:
     )
 with score_col2:
     st.markdown("### 🗓️ Date Points")
+    
+    # Recalculate date points dynamically to ensure it's responsive to date changes
+    birthday_owner = calculate_birthday_points()
+    
     if birthday_owner == 'Red':
         st.markdown(
             "### <span style='color:red'>Red Team owns the Date Points!</span>",
@@ -265,7 +254,7 @@ fig = px.choropleth(
     color_discrete_map={
         'Red': 'red',
         'Blue': 'blue',
-        'LightGray': 'lightgray'
+        'LightGray': 'unclaimed'
     },
     scope='usa',
     title="🌍 US Map: Team Ownership"
