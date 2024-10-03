@@ -102,9 +102,9 @@ def calculate_scores():
     
     # Compare dates for bonus points (earliest date gets bonus)
     if st.session_state.red_date < st.session_state.blue_date:
-        red_score += 10
+        red_score += 5
     elif st.session_state.blue_date < st.session_state.red_date:
-        blue_score += 10
+        blue_score += 5
     
     return red_score, blue_score
 
